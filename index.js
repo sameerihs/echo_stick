@@ -173,10 +173,10 @@ app.get("/trigger-job", (req, res) => {
 });
 
 // Stop the cron job after 1 minute (for demonstration purposes)
-setTimeout(() => {
-  cronJob.stop();
-  console.log("Cron job stopped.");
-}, 600000); // 10 minute (60000 milliseconds *10)
+// setTimeout(() => {
+//   cronJob.stop();
+//   console.log("Cron job stopped.");
+// }, 600000); // 10 minute (60000 milliseconds *10)
 
 // Start Express server
 const PORT = process.env.PORT || 3000;
