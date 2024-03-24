@@ -166,10 +166,218 @@ const cronJob = new CronJob("0 0 */2 * * *", async () => {
 cronJob.start();
 
 // Define route to trigger the cron job manually
-app.get("/trigger-job", (req, res) => {
+app.get("/trigger-job", async (req, res) => {
   // Manually trigger the cron job
-  cronJob.start();
-  res.send("Cron job triggered manually.");
+  try {
+    const waterCansRef = db.collection("waterCans");
+    const collectionExists = await waterCansRef
+      .get()
+      .then(() => true)
+      .catch(() => false);
+
+    if (!collectionExists) {
+      console.log(
+        "No collection named 'waterCans' found. Waiting for the next cron job."
+      );
+      return;
+    }
+
+    const snapshot = await waterCansRef.get();
+
+    for (const doc of snapshot.docs) {
+      // Loop synchronously through the documents
+      const {
+        fetchInterval,
+        id,
+        image,
+        location,
+        phoneNumber,
+        timestampField,
+        title,
+      } = doc.data();
+
+      const bucket = admin.storage().bucket();
+      const filePath = image;
+      const file = bucket.file(filePath);
+
+      let directory = "temp";
+      let filename = "image";
+      if (filePath.endsWith(".png")) {
+        filename += ".png";
+      } else if (filePath.endsWith(".jpg") || filePath.endsWith(".jpeg")) {
+        filename += ".jpg";
+      } else {
+        console.log("Unsupported file type.");
+        continue; // Skip this document and proceed to the next one
+      }
+
+      const tempDir = path.join(__dirname, directory);
+      if (!fs.existsSync(tempDir)) {
+        fs.mkdirSync(tempDir);
+      }
+      const tempFilePath = path.join(tempDir, filename);
+
+      if (!fs.existsSync(tempFilePath)) {
+        fs.writeFileSync(tempFilePath, ""); // Create an empty file
+      }
+
+      await file.download({ destination: tempFilePath });
+
+      // Read the downloaded file as a buffer
+      const bufferData = fs.readFileSync(tempFilePath);
+
+      // Check if the file is a PNG or JPEG
+      let fileType = "";
+      if (isPNG(bufferData)) {
+        fileType = "png";
+      } else if (isJPEG(bufferData)) {
+        fileType = "jpeg";
+      } else {
+        console.log("Unsupported file type.");
+        continue; // Skip this document and proceed to the next one
+      }
+      console.log("File type:", fileType);
+
+      // Define model parameters
+      const modelParams = {
+        modelUrl: "https://teachablemachine.withgoogle.com/models/CUU-5erFK/",
+      };
+      const tm = new YourTeachableMachine(modelParams);
+      const imagePath = tempFilePath; // Use the downloaded temp file path
+      const predictions = await tm.classify({ imagePath, fileType });
+      console.log("Title:", title);
+      console.log("Predictions:", predictions);
+
+      await doc.ref.update({ timestampField: new Date().toLocaleString() });
+
+      // Send SMS notification using Twilio
+      const accountSid = process.env.TWILIO_ACCOUNT_SID;
+      const authToken = process.env.TWILIO_AUTH_TOKEN;
+      const client = new twilio(accountSid, authToken);
+      if (predictions[0].class === "Yes") {
+        console.log("Sending SMS for the water can:", title);
+        const message = await client.messages
+          .create({
+            body: `The "${title}" at ${location} is empty.`,
+            from: process.env.TWILIO_PHONE_NUMBER,
+            to: process.env.MY_PHONE_NUMBER,
+          })
+          .then((message) => console.log("Message sent:", message.sid))
+          .catch((error) => console.error("Error sending message:", error));
+      }
+    }
+    res.status(200).send("Job triggered successfully");
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).send("Internal server error");
+  }
+});
+
+app.get("/trigger-job", async (req, res) => {
+  // Manually trigger the cron job
+  try {
+    const waterCansRef = db.collection("waterCans");
+    const collectionExists = await waterCansRef
+      .get()
+      .then(() => true)
+      .catch(() => false);
+
+    if (!collectionExists) {
+      console.log(
+        "No collection named 'waterCans' found. Waiting for the next cron job."
+      );
+      return;
+    }
+
+    const snapshot = await waterCansRef.get();
+
+    for (const doc of snapshot.docs) {
+      // Loop synchronously through the documents
+      const {
+        fetchInterval,
+        id,
+        image,
+        location,
+        phoneNumber,
+        timestampField,
+        title,
+      } = doc.data();
+
+      const bucket = admin.storage().bucket();
+      const filePath = image;
+      const file = bucket.file(filePath);
+
+      let directory = "temp";
+      let filename = "image";
+      if (filePath.endsWith(".png")) {
+        filename += ".png";
+      } else if (filePath.endsWith(".jpg") || filePath.endsWith(".jpeg")) {
+        filename += ".jpg";
+      } else {
+        console.log("Unsupported file type.");
+        continue; // Skip this document and proceed to the next one
+      }
+
+      const tempDir = path.join(__dirname, directory);
+      if (!fs.existsSync(tempDir)) {
+        fs.mkdirSync(tempDir);
+      }
+      const tempFilePath = path.join(tempDir, filename);
+
+      if (!fs.existsSync(tempFilePath)) {
+        fs.writeFileSync(tempFilePath, ""); // Create an empty file
+      }
+
+      await file.download({ destination: tempFilePath });
+
+      // Read the downloaded file as a buffer
+      const bufferData = fs.readFileSync(tempFilePath);
+
+      // Check if the file is a PNG or JPEG
+      let fileType = "";
+      if (isPNG(bufferData)) {
+        fileType = "png";
+      } else if (isJPEG(bufferData)) {
+        fileType = "jpeg";
+      } else {
+        console.log("Unsupported file type.");
+        continue; // Skip this document and proceed to the next one
+      }
+      console.log("File type:", fileType);
+
+      // Define model parameters
+      const modelParams = {
+        modelUrl: "https://teachablemachine.withgoogle.com/models/CUU-5erFK/",
+      };
+      const tm = new YourTeachableMachine(modelParams);
+      const imagePath = tempFilePath; // Use the downloaded temp file path
+      const predictions = await tm.classify({ imagePath, fileType });
+      console.log("Title:", title);
+      console.log("Predictions:", predictions);
+
+      await doc.ref.update({ timestampField: new Date().toLocaleString() });
+
+      // Send SMS notification using Twilio
+      const accountSid = process.env.TWILIO_ACCOUNT_SID;
+      const authToken = process.env.TWILIO_AUTH_TOKEN;
+      const client = new twilio(accountSid, authToken);
+      if (predictions[0].class === "Yes") {
+        console.log("Sending SMS for the water can:", title);
+        const message = await client.messages
+          .create({
+            body: `The "${title}" at ${location} is empty.`,
+            from: process.env.TWILIO_PHONE_NUMBER,
+            to: process.env.MY_PHONE_NUMBER,
+          })
+          .then((message) => console.log("Message sent:", message.sid))
+          .catch((error) => console.error("Error sending message:", error));
+      }
+    }
+    res.status(200).end();
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).send("Internal server error");
+  }
 });
 
 // Stop the cron job after 1 minute (for demonstration purposes)
