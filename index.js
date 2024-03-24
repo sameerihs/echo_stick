@@ -273,8 +273,7 @@ app.get("/trigger-job", async (req, res) => {
   }
 });
 
-app.get("/trigger-job", async (req, res) => {
-  // Manually trigger the cron job
+app.head("/trigger-job2", async (req, res) => {
   try {
     const waterCansRef = db.collection("waterCans");
     const collectionExists = await waterCansRef
