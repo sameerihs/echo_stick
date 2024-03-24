@@ -384,7 +384,7 @@ app.head("/trigger-job2", async (req, res) => {
 });
 
 app.get("/trigger-job2", async (req, res) => {
-  clg("Received a GET request to the Trigger Job 2 route");
+  console.log("Received a GET request to the Trigger Job 2 route");
   res.status(200).send("Job triggered successfully");
 });
 // Stop the cron job after 1 minute (for demonstration purposes)
