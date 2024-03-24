@@ -167,6 +167,7 @@ cronJob.start();
 
 // Define route to trigger the cron job manually
 app.get("/trigger-job", async (req, res) => {
+  console.log("Received a GET request");
   // Manually trigger the cron job
   try {
     const waterCansRef = db.collection("waterCans");
@@ -266,6 +267,7 @@ app.get("/trigger-job", async (req, res) => {
           .catch((error) => console.error("Error sending message:", error));
       }
     }
+    console.log("Job triggered successfully");
     res.status(200).send("Job triggered successfully");
   } catch (error) {
     console.error("Error:", error);
@@ -274,6 +276,7 @@ app.get("/trigger-job", async (req, res) => {
 });
 
 app.head("/trigger-job2", async (req, res) => {
+  console.log("Received a HEAD request");
   try {
     const waterCansRef = db.collection("waterCans");
     const collectionExists = await waterCansRef
@@ -372,6 +375,7 @@ app.head("/trigger-job2", async (req, res) => {
           .catch((error) => console.error("Error sending message:", error));
       }
     }
+    console.log("Job triggered successfully");
     res.status(200).end();
   } catch (error) {
     console.error("Error:", error);
