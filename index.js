@@ -167,7 +167,7 @@ cronJob.start();
 
 // Define route to trigger the cron job manually
 app.get("/trigger-job", async (req, res) => {
-  console.log("Received a GET request");
+  console.log("Received a GET request to trigger-job route");
   // Manually trigger the cron job
   try {
     const waterCansRef = db.collection("waterCans");
