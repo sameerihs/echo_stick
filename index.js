@@ -13,6 +13,13 @@ const YourTeachableMachine = require("./TeachableMachine");
 // Load environment variables from .env file
 dotenv.config();
 const app = express();
+app.use(express.json());
+
+app.use(
+  express.urlencoded({
+    extended: true,
+  })
+);
 app.use(cors());
 const serviceAccount = {
   type: "service_account",
@@ -386,6 +393,29 @@ app.head("/trigger-job2", async (req, res) => {
 app.get("/trigger-job2", async (req, res) => {
   console.log("Received a GET request to the Trigger Job 2 route");
   res.status(200).send("Job triggered successfully");
+});
+
+app.post("/send-sms", async (req, res) => {
+  console.log("Received a POST request to send-sms route");
+  console.log("Request body:", req.body);
+  const { body } = req.body;
+  const accountSid = process.env.TWILIO_ACCOUNT_SID;
+  const authToken = process.env.TWILIO_AUTH_TOKEN;
+  const client = new twilio(accountSid, authToken);
+  client.messages
+    .create({
+      body,
+      from: process.env.TWILIO_PHONE_NUMBER,
+      to: process.env.MY_PHONE_NUMBER,
+    })
+    .then((message) => {
+      console.log("Message sent:", message.sid);
+      res.status(200).send("Message sent successfully");
+    })
+    .catch((error) => {
+      console.error("Error sending message:", error);
+      res.status(500).send("Error sending message");
+    });
 });
 // Stop the cron job after 1 minute (for demonstration purposes)
 // setTimeout(() => {
