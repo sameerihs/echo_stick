@@ -417,6 +417,29 @@ app.post("/send-sms", async (req, res) => {
       res.status(500).send("Error sending message");
     });
 });
+
+app.get("/get-sms", async (_req_, res) => {
+  console.log("Received a GET request to get-sms route");
+
+  try {
+    // Send a Twilio SMS message with the message "Fall Detected"
+    const accountSid = process.env.TWILIO_ACCOUNT_SID;
+    const authToken = process.env.TWILIO_AUTH_TOKEN;
+    const client = new twilio(accountSid, authToken);
+
+    const message = await client.messages.create({
+      body: "Fall Detected",
+      from: process.env.TWILIO_PHONE_NUMBER,
+      to: process.env.MY_PHONE_NUMBER,
+    });
+
+    console.log("Message sent:", message.sid);
+    res.status(200).send("Message sent successfully");
+  } catch (error) {
+    console.error("Error sending message:", error);
+    res.status(500).send("Error sending message");
+  }
+});
 // Stop the cron job after 1 minute (for demonstration purposes)
 // setTimeout(() => {
 //   cronJob.stop();
