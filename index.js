@@ -1,14 +1,11 @@
 // Import necessary modules
 const express = require("express");
 const { CronJob } = require("cron");
-const admin = require("firebase-admin");
-const { getStorage } = require("firebase-admin/storage");
 const twilio = require("twilio");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
-const YourTeachableMachine = require("./TeachableMachine");
 
 // Load environment variables from .env file
 dotenv.config();
