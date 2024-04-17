@@ -10,19 +10,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@sashido/teachablemachine-node": "^1.2.2",
-    "@tensorflow/tfjs": "^4.17.0",
     "cors": "^2.8.5",
     "cron": "^3.1.6",
     "dotenv": "^16.4.5",
     "express": "^4.19.1",
-    "firebase": "^10.9.0",
-    "firebase-admin": "^12.0.0",
-    "mime": "^4.0.1",
     "node-cron": "^3.0.3",
     "node-fetch": "^3.3.2",
     "nodemon": "^3.1.0",
-    "pureimage": "^0.4.13",
     "twilio": "^5.0.1"
   }
 }
